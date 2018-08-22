@@ -15,13 +15,26 @@ node {
             integrationBranch: 'master', 
             repoName: 'origin')], 
             submoduleCfg: [], 
-            userRemoteConfigs: [[credentialsId: 'sofusalbertsen', //remember to change credentials and url.
-            url: 'git@github.com:sofusalbertsen/pretested_jenkins.git']]])
+            userRemoteConfigs: [[credentialsId: 'lauritsen', //remember to change credentials and url.
+            url: 'git@github.com:lauritsen/jenkins-workshop.git']]])
     }
+    
     stage("test"){
         // run maven tests here
         sh 'echo testing...'
     }
+    
+    stage('Maven build'){
+        sh 'docker run -i -v $PWD:/usr/src/mymaven -w /usr/src/mymaven --rm maven:3-jdk-8 mvn clean install'
+    }
+    stage('Results'){
+        junit '**/target/surefire-reports/TEST-*.xml'
+        archiveArtifacts 'target/gildedrose-*.jar'
+    }
+    stage('javadoc'){
+        sh 'docker run -i -v $PWD:/usr/src/mymaven -w /usr/src/mymaven --rm maven:3-jdk-8 mvn javadoc:javadoc'
+    }
+    
     stage("publish"){
         //This publishes the commit if the tests have run without errors
         pretestedIntegrationPublisher()
